@@ -10,8 +10,8 @@ from src.model.user_category_list import UserCategoryList
 
 
 class CategoryRepository(BaseRepository):
-    async def create_category(self, category_create: CategoryCreate) -> Category:
-        stmt = Insert(Category).values(category_name=category_create.category_name)
+    async def create_category(self, user_id: int, category_create: CategoryCreate) -> Category:
+        stmt = Insert(Category).values(owner_id=user_id, category_name=category_create.category_name)
 
         result = await self.db_session.execute(statement=stmt)
         category = result.scalar()
@@ -20,8 +20,8 @@ class CategoryRepository(BaseRepository):
 
         return category
 
-    async def get_category_by_id(self, category_id: int) -> Category | None:
-        stmt = Select(Category).where(Category.id == category_id)
+    async def get_category_by_id(self, user_id: int, category_id: int) -> Category | None:
+        stmt = Select(Category).where(Category.id == category_id, Category.owner_id == user_id)
 
         result = await self.db_session.execute(statement=stmt)
         category = result.scalar()
@@ -31,8 +31,21 @@ class CategoryRepository(BaseRepository):
 
         return category
 
-    async def add_user_by_user_id(self, category_id: int, user_id: int) -> UserCategoryList.id | None:
-        stmt = Insert(UserCategoryList).values(user_id=user_id, category_id=category_id).returning(UserCategoryList.id)
+    async def get_categories_by_user_id(self, user_id: int) -> List[Category]:
+        stmt = Select(Category).where(Category.owner_id == user_id)
+
+        categories = await self.db_session.execute(statement=stmt)
+
+        categories_list = [
+            element.scalar()
+            for element
+            in categories
+        ]
+
+        return categories_list
+
+    async def add_user_by_user_id(self, category_id: int, user_id: int) -> int | None:
+        stmt = Insert(UserCategoryList).values(user_id=user_id, category_id=category_id)
 
         result = await self.db_session.execute(statement=stmt)
         scalar_result = result.scalar()
@@ -40,9 +53,9 @@ class CategoryRepository(BaseRepository):
         if not scalar_result:
             return None
 
-        return result
+        return category_id
 
-    async def remove_user_by_user_id(self, category_id: int, user_id: int) -> UserCategoryList.id | None:
+    async def remove_user_by_user_id(self, category_id: int, user_id: int) -> int | None:
         stmt = Delete(UserCategoryList).where(category_id=category_id, user_id=user_id)
 
         result = await self.db_session.execute(statement=stmt)
@@ -51,35 +64,26 @@ class CategoryRepository(BaseRepository):
         if not scalar_result:
             return None
 
-        return result
+        return category_id
 
-    async def update_category_by_id(self, category_id: int, category_update: CategoryUpdate) -> Category | None:
-        category = await self.get_category_by_id(category_id=category_id)
-
-        if not category:
-            return None
+    async def update_category_by_id(self, user_id: int, category_id: int, category_update: CategoryUpdate) -> Category | None:
+        stmt = Update(Category).where(Category.id == category_id, Category.owner_id == user_id)
 
         if category_update.category_name:
-            category.category_name = category_update.category_name
+            stmt.values(category_name=category_update.category_name)
+
+        stmt = stmt.returning(Category)
+        result = await self.db_session.execute(statement=stmt)
+        category = result.scalar()
 
         await self.db_session.commit()
 
         return category
 
-    async def delete_category_by_id(self, category_id: int) -> Category.id | None:
-        category = await self.get_category_by_id(category_id=category_id)
+    async def delete_category_by_id(self, user_id: int, category_id: int) -> int | None:
+        stmt = Delete(Category).where(Category.id == category_id, Category.owner_id == user_id)
 
-        if not category:
-            return None
-
-        # stmt = Delete(Category).where(Category.id == category_id).returning(User.id)
-        stmt = Delete(category).returning(Category.id)
-        result = await self.db_session.execute(statement=stmt)
-        result_scalar = result.scalar()
-
-        if not result_scalar:
-            return None
-
+        await self.db_session.execute(statement=stmt)
         await self.db_session.commit()
 
-        return result
+        return category_id
