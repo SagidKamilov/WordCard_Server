@@ -32,6 +32,17 @@ class UserRepository(BaseRepository):
 
         return user
 
+    async def get_user_by_username(self, username: str) -> User | None:
+        stmt = Select(User).where(User.username == username)
+
+        result = await self.db_session.execute(statement=stmt)
+        user = result.scalar()
+
+        if not user:
+            return None
+
+        return user
+
     async def get_users_by_category_id(self, category_id: int) -> List[User] | None:
         stmt = Select(User).join(Category).where(Category.id == category_id)
 
@@ -48,37 +59,29 @@ class UserRepository(BaseRepository):
         return users_list
 
     async def update_user_by_id(self, user_id: int, user_update: UserUpdateHashedPassword) -> User | None:
-        user = await self.get_user_by_id(user_id=user_id)
-
-        if not user:
-            return None
+        stmt = Update(User).where(User.id == user_id)
 
         if user_update.username:
-            user.username = user_update.username
-
-        if user_update.name:
-            user.name = user_update.name
+            stmt = stmt.values(username=user_update.username)
 
         if user_update.hashed_password:
-            user.hashed_password = user_update.hashed_password
+            stmt = stmt.values(hash_password=user_update.hashed_password)
+
+        if user_update.name:
+            stmt = stmt.values(email=user_update.name)
+
+        stmt = stmt.returning(User)
+        user = await self.db_session.execute(stmt)
+        user = user.scalar()
 
         await self.db_session.commit()
 
         return user
 
-    async def delete_user_by_id(self, user_id: int) -> User.id | None:
-        user = await self.get_user_by_id(user_id=user_id)
+    async def delete_user_by_id(self, user_id: int) -> int | None:
+        stmt = Delete(User).where(User.id == user_id)
 
-        if not user:
-            return None
-
-        stmt = Delete(User).where(User.id == user_id).returning(User.id)
-        result = await self.db_session.execute(statement=stmt)
-        result_scalar = result.scalar()
-
-        if not result_scalar:
-            return None
-
+        await self.db_session.execute(statement=stmt)
         await self.db_session.commit()
 
-        return result
+        return user_id
