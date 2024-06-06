@@ -64,19 +64,10 @@ class WordRepository(BaseRepository):
 
         return word
 
-    async def delete_word(self, word_id: int) -> Word.id | None:
-        word = await self.get_word_by_id(word_id=word_id)
+    async def delete_word(self, word_id: int) -> int | None:
+        stmt = Delete(Word).where(Word.id == word_id)
 
-        if not word:
-            return None
-
-        stmt = Delete(word).returning(Word.id)
-        result = await self.db_session.execute(statement=stmt)
-        result_scalar = result.scalar()
-
-        if not result_scalar:
-            return None
-
+        await self.db_session.execute(statement=stmt)
         await self.db_session.commit()
 
-        return result_scalar
+        return word_id
