@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 
 
+class UserAuth(BaseModel):
+    username: str
+    password: str
+
+
 class UserCreateHashPassword(BaseModel):
     username: str
     name: str
