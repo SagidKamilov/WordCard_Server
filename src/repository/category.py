@@ -20,8 +20,8 @@ class CategoryRepository(BaseRepository):
 
         return category
 
-    async def get_category_by_id(self, user_id: int, category_id: int) -> Category | None:
-        stmt = Select(Category).where(Category.id == category_id, Category.owner_id == user_id)
+    async def get_category_by_id(self, category_id: int) -> Category | None:
+        stmt = Select(Category).where(Category.id == category_id)
 
         result = await self.db_session.execute(statement=stmt)
         category = result.scalar()
@@ -66,8 +66,8 @@ class CategoryRepository(BaseRepository):
 
         return category_id
 
-    async def update_category_by_id(self, user_id: int, category_id: int, category_update: CategoryUpdate) -> Category | None:
-        stmt = Update(Category).where(Category.id == category_id, Category.owner_id == user_id)
+    async def update_category_by_id(self, category_id: int, category_update: CategoryUpdate) -> Category | None:
+        stmt = Update(Category).where(Category.id == category_id)
 
         if category_update.category_name:
             stmt.values(category_name=category_update.category_name)
@@ -80,8 +80,8 @@ class CategoryRepository(BaseRepository):
 
         return category
 
-    async def delete_category_by_id(self, user_id: int, category_id: int) -> int | None:
-        stmt = Delete(Category).where(Category.id == category_id, Category.owner_id == user_id)
+    async def delete_category_by_id(self, category_id: int) -> int | None:
+        stmt = Delete(Category).where(Category.id == category_id)
 
         await self.db_session.execute(statement=stmt)
         await self.db_session.commit()
