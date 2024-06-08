@@ -6,7 +6,7 @@ from src.api.dependencies import user_container
 from src.dto.user import UserUpdate, UserResponse
 
 
-router = APIRouter(prefix="/users", tags=["Действия над пользователем"])
+router = APIRouter(prefix="/user", tags=["Действия над пользователем"])
 
 
 @router.get(path="/{user_id}", status_code=status.HTTP_200_OK, response_model=UserResponse)
