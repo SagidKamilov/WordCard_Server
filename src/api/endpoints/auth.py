@@ -7,7 +7,7 @@ from src.dto.user import UserCreate, UserAuth, UserResponse
 router = APIRouter(prefix="/auth", tags=["Аутентификация"])
 
 
-@router.post(path="/signin", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
+@router.post(path="/signin", status_code=status.HTTP_200_OK, response_model=UserResponse)
 async def sign_in(user_auth: UserAuth):
     try:
         user: UserResponse = await user_container().verify_user(user_auth=user_auth)
