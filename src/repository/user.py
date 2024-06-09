@@ -51,9 +51,9 @@ class UserRepository(BaseRepository):
             return None
 
         users_list = [
-            element.scalar()
+            element
             for element
-            in users_list
+            in users_list.scalars()
         ]
 
         return users_list

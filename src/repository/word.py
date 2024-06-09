@@ -38,27 +38,28 @@ class WordRepository(BaseRepository):
             return None
 
         words_list = [
-            element.scalar()
+            element
             for element
-            in words_list
+            in words_list.scalars()
         ]
 
         return words_list
 
     async def update_word(self, word_id: int, word_update: WordUpdate) -> Word | None:
-        word = await self.get_word_by_id(word_id=word_id)
-
-        if not word:
-            return None
+        stmt = Update(Word).where(Word.id == word_id)
 
         if word_update.main_language:
-            word.main_language = word_update.main_language
+            stmt = stmt.values(main_language=word_update.main_language)
 
         if word_update.second_language:
-            word.second_language = word_update.second_language
+            stmt = stmt.values(second_language=word_update.second_language)
 
         if word_update.transcription:
-            word.transcription = word_update.transcription
+            stmt = stmt.values(transcription=word_update.transcription)
+
+        stmt = stmt.returning(Word)
+        result = await self.db_session.execute(stmt)
+        word = result.scalar()
 
         await self.db_session.commit()
 
