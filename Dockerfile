@@ -1,6 +1,6 @@
 FROM python:3.11.1-slim
 
-WORKDIR /broken_sword_app
+WORKDIR /word_card
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
