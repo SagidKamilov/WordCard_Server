@@ -9,8 +9,8 @@ class WordService:
     def __init__(self, word_repo: WordRepository):
         self.word_repo = word_repo
 
-    async def create_word(self, word_create: WordCreate) -> WordResponse:
-        word = await self.word_repo.create_word(word_create=word_create)
+    async def create_word(self, category_id: int, word_create: WordCreate) -> WordResponse:
+        word = await self.word_repo.create_word(category_id=category_id, word_create=word_create)
 
         return WordResponse(
             id=word.id,
