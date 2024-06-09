@@ -12,7 +12,7 @@ from src.model.category import Category
 class WordRepository(BaseRepository):
     async def create_word(self, category_id: int, word_create: WordCreate) -> Word:
         stmt = Insert(Word).values(main_language=word_create.main_language, second_language=word_create.second_language,
-                                   transcription=word_create.transcription, category_id=category_id)
+                                   transcription=word_create.transcription, category_id=category_id).returning(Word)
 
         result = await self.db_session.execute(statement=stmt)
         word = result.scalar()

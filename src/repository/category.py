@@ -11,7 +11,7 @@ from src.model.user_category_list import UserCategoryList
 
 class CategoryRepository(BaseRepository):
     async def create_category(self, user_id: int, category_create: CategoryCreate) -> Category:
-        stmt = Insert(Category).values(owner_id=user_id, category_name=category_create.category_name)
+        stmt = Insert(Category).values(owner_id=user_id, category_name=category_create.category_name).returning(Category)
 
         result = await self.db_session.execute(statement=stmt)
         category = result.scalar()
