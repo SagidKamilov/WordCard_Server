@@ -12,7 +12,7 @@ from src.model.category import Category
 class UserRepository(BaseRepository):
     async def create_user(self, user_create: UserCreateHashPassword) -> User:
         stmt = Insert(User).values(username=user_create.username, name=user_create.name,
-                                   hashed_password=user_create.hashed_password)
+                                   hashed_password=user_create.hashed_password).returning(User)
 
         result = await self.db_session.execute(statement=stmt)
         user = result.scalar()
@@ -65,10 +65,10 @@ class UserRepository(BaseRepository):
             stmt = stmt.values(username=user_update.username)
 
         if user_update.hashed_password:
-            stmt = stmt.values(hash_password=user_update.hashed_password)
+            stmt = stmt.values(hashed_password=user_update.hashed_password)
 
         if user_update.name:
-            stmt = stmt.values(email=user_update.name)
+            stmt = stmt.values(name=user_update.name)
 
         stmt = stmt.returning(User)
         user = await self.db_session.execute(stmt)
