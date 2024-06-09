@@ -28,11 +28,27 @@ class CategoryService:
 
         return CategoryResponse(
             id=category.id,
-            category_name=category.category_name
+            category_name=category.category_name,
+            owner_id=category.owner_id
         )
 
     async def get_categories(self, user_id: int) -> List[CategoryResponse]:
         categories = await self.category_repo.get_categories_by_user_id(user_id=user_id)
+
+        response_list = [
+            CategoryResponse(
+                id=category.id,
+                category_name=category.category_name,
+                owner_id=category.owner_id
+            )
+            for category
+            in categories
+        ]
+
+        return response_list
+
+    async def get_general_categories(self, user_id: int) -> List[CategoryResponse]:
+        categories = await self.category_repo.get_all_general_category_categories(user_id=user_id)
 
         response_list = [
             CategoryResponse(

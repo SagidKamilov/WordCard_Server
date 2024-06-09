@@ -29,10 +29,20 @@ async def get_category(category_id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
 
 
-@router.get(path="/{user_id}/category", status_code=status.HTTP_200_OK, response_model=List[CategoryResponse])
+@router.get(path="/{user_id}/categories", status_code=status.HTTP_200_OK, response_model=List[CategoryResponse])
 async def get_categories(user_id: int):
     try:
         categories = await category_container().get_categories(user_id=user_id)
+
+        return categories
+    except Exception as error_detail:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
+
+
+@router.get(path="/{user_id}/general/categories", status_code=status.HTTP_200_OK, response_model=List[CategoryResponse])
+async def get_categories(user_id: int):
+    try:
+        categories = await category_container().get_general_categories(user_id=user_id)
 
         return categories
     except Exception as error_detail:

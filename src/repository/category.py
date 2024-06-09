@@ -37,9 +37,22 @@ class CategoryRepository(BaseRepository):
         categories = await self.db_session.execute(statement=stmt)
 
         categories_list = [
-            element.scalar()
+            element
             for element
-            in categories
+            in categories.scalars()
+        ]
+
+        return categories_list
+
+    async def get_all_general_category_categories(self, user_id: int) -> List[Category]:
+        stmt = Select(Category).join(UserCategoryList).where(UserCategoryList.user_id == user_id)
+
+        categories = await self.db_session.execute(statement=stmt)
+
+        categories_list = [
+            element
+            for element
+            in categories.scalars()
         ]
 
         return categories_list
@@ -70,7 +83,7 @@ class CategoryRepository(BaseRepository):
         stmt = Update(Category).where(Category.id == category_id)
 
         if category_update.category_name:
-            stmt.values(category_name=category_update.category_name)
+            stmt = stmt.values(category_name=category_update.category_name)
 
         stmt = stmt.returning(Category)
         result = await self.db_session.execute(statement=stmt)
