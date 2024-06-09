@@ -10,6 +10,7 @@ from alembic import context
 from src.model.user import User
 from src.model.word import Word
 from src.model.category import Category
+from src.model.user_category_list import UserCategoryList
 from src.model.base_model import Base
 
 from src.config import settings
