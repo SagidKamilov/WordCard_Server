@@ -17,6 +17,8 @@ class WordRepository(BaseRepository):
         result = await self.db_session.execute(statement=stmt)
         word = result.scalar()
 
+        await self.db_session.commit()
+
         return word
 
     async def get_word_by_id(self, word_id: int) -> Word | None:
