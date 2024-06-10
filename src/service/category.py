@@ -66,9 +66,9 @@ class CategoryService:
         check_category = await self.check_category_exist(category_id=category_id)
 
         if not check_category:
-            raise Exception(f"Пользователя с id = `{user_id}` не был добавлен в категорию с id = `{category_id}`!")
+            raise Exception(f"Пользователь с id = `{user_id}` не был добавлен в категорию с id = `{category_id}`!")
 
-        result = await self.add_user_in_category(user_id=user_id, category_id=category_id)
+        result = await self.category_repo.add_user_by_user_id(user_id=user_id, category_id=category_id)
 
         return result
 
@@ -78,7 +78,7 @@ class CategoryService:
         if not check_category:
             raise Exception(f"Пользователь с id = `{user_id}` не был удален из категории с id = `{category_id}`!")
 
-        result = await self.remove_user_from_category(user_id=user_id, category_id=category_id)
+        result = await self.category_repo.remove_user_by_user_id(user_id=user_id, category_id=category_id)
 
         return result
 
