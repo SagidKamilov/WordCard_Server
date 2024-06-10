@@ -11,4 +11,4 @@ class Word(Base):
     second_language: Mapped[str] = mapped_column(name="second_language", type_=String(255), nullable=False, unique=False)
     transcription: Mapped[str] = mapped_column(name="transcription", type_=String(255), nullable=True, unique=False)
 
-    category_id: Mapped[int] = mapped_column("category_id", ForeignKey("category_word_card.id"))
+    category_id: Mapped[int] = mapped_column("category_id", ForeignKey("category_word_card.id", ondelete="CASCADE"))
