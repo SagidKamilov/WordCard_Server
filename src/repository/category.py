@@ -57,25 +57,19 @@ class CategoryRepository(BaseRepository):
 
         return categories_list
 
-    async def add_user_by_user_id(self, category_id: int, user_id: int) -> int | None:
+    async def add_user_by_user_id(self, category_id: int, user_id: int) -> int:
         stmt = Insert(UserCategoryList).values(user_id=user_id, category_id=category_id)
 
-        result = await self.db_session.execute(statement=stmt)
-        scalar_result = result.scalar()
-
-        if not scalar_result:
-            return None
+        await self.db_session.execute(statement=stmt)
+        await self.db_session.commit()
 
         return category_id
 
-    async def remove_user_by_user_id(self, category_id: int, user_id: int) -> int | None:
-        stmt = Delete(UserCategoryList).where(category_id=category_id, user_id=user_id)
+    async def remove_user_by_user_id(self, category_id: int, user_id: int) -> int:
+        stmt = Delete(UserCategoryList).where(UserCategoryList.category_id == category_id).where(UserCategoryList.user_id==user_id)
 
-        result = await self.db_session.execute(statement=stmt)
-        scalar_result = result.scalar()
-
-        if not scalar_result:
-            return None
+        await self.db_session.execute(statement=stmt)
+        await self.db_session.commit()
 
         return category_id
 
@@ -93,7 +87,7 @@ class CategoryRepository(BaseRepository):
 
         return category
 
-    async def delete_category_by_id(self, category_id: int) -> int | None:
+    async def delete_category_by_id(self, category_id: int) -> int:
         stmt = Delete(Category).where(Category.id == category_id)
 
         await self.db_session.execute(statement=stmt)
