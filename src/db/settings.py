@@ -16,7 +16,7 @@ class AsyncDatabase:
         self.async_session = None
 
     def initialize_engine(self):
-        self.async_engine = create_async_engine(url=self.url)
+        self.async_engine = create_async_engine(url=self.url, pool_size=20, max_overflow=0)
 
     def initialize_session(self):
         self.async_session = async_sessionmaker(bind=self.async_engine, expire_on_commit=False)
