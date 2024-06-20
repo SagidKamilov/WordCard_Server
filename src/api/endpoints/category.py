@@ -40,7 +40,7 @@ async def get_categories(user_id: int):
 
 
 @router.get(path="/{user_id}/general/categories", status_code=status.HTTP_200_OK, response_model=List[CategoryResponse])
-async def get_categories(user_id: int):
+async def get_general_categories(user_id: int):
     try:
         categories = await category_container().get_general_categories(user_id=user_id)
 
@@ -60,7 +60,7 @@ async def category_add_user(category_id: int, user_id: int):
 
 
 @router.delete(path="/category/{category_id}/user/{user_id}", status_code=status.HTTP_200_OK, response_model=int)
-async def category_add_user(category_id: int, user_id: int):
+async def category_delete_user(category_id: int, user_id: int):
     try:
         result = await category_container().remove_user_from_category(user_id=user_id, category_id=category_id)
 
