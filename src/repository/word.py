@@ -33,7 +33,7 @@ class WordRepository(BaseRepository):
         return word
 
     async def get_words_by_category_id(self, category_id: int) -> List[Word] | None:
-        stmt = Select(Word).where(Category.id == category_id)
+        stmt = Select(Word).where(Word.category_id == category_id)
 
         words_list = await self.db_session.execute(statement=stmt)
         if not words_list:
