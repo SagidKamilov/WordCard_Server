@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 
 from src.api.dependencies import category_container
 from src.dto.category import CategoryCreate, CategoryUpdate, CategoryResponse
@@ -50,7 +50,7 @@ async def get_general_categories(user_id: int):
 
 
 @router.post(path="/category/{category_id}/user/{user_id}", status_code=status.HTTP_200_OK, response_model=int)
-async def category_add_user(category_id: int, user_id: int):
+async def category_remove_user(category_id: int, user_id: int):
     try:
         result = await category_container().add_user_in_category(user_id=user_id, category_id=category_id)
 
