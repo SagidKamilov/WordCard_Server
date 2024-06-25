@@ -16,7 +16,7 @@ from src.repository.word import WordRepository
 async_database = AsyncDatabase()
 
 
-async def user_container() -> UserService:
+def user_container() -> UserService:
     async_session = async_database.initialize_session()
     hash_generator = HashGenerator()
     user_repository = UserRepository(async_db_session_obj=async_session)
