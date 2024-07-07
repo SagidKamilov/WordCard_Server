@@ -21,34 +21,26 @@ class UserRepository(BaseRepository):
 
         return user
 
-    async def get_user_by_id(self, user_id: int) -> User | None:
+    async def get_user_by_id(self, user_id: int) -> User:
         stmt = Select(User).where(User.id == user_id)
 
         result = await self.db_session.execute(statement=stmt)
         user = result.scalar()
 
-        if not user:
-            return None
-
         return user
 
-    async def get_user_by_username(self, username: str) -> User | None:
+    async def get_user_by_username(self, username: str) -> User:
         stmt = Select(User).where(User.username == username)
 
         result = await self.db_session.execute(statement=stmt)
         user = result.scalar()
 
-        if not user:
-            return None
-
         return user
 
-    async def get_users_by_category_id(self, category_id: int) -> List[User] | None:
+    async def get_users_by_category_id(self, category_id: int) -> List[User]:
         stmt = Select(User).join(Category).where(Category.id == category_id)
 
         users_list = await self.db_session.execute(stmt)
-        if not users_list:
-            return None
 
         users_list = [
             element
@@ -58,7 +50,7 @@ class UserRepository(BaseRepository):
 
         return users_list
 
-    async def update_user_by_id(self, user_id: int, user_update: UserUpdateHashedPassword) -> User | None:
+    async def update_user_by_id(self, user_id: int, user_update: UserUpdateHashedPassword) -> User:
         stmt = Update(User).where(User.id == user_id)
 
         if user_update.username:
@@ -78,7 +70,7 @@ class UserRepository(BaseRepository):
 
         return user
 
-    async def delete_user_by_id(self, user_id: int) -> int | None:
+    async def delete_user_by_id(self, user_id: int) -> int:
         stmt = Delete(User).where(User.id == user_id)
 
         await self.db_session.execute(statement=stmt)

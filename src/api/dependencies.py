@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from src.db.settings import AsyncDatabase
+from src.db.settings import async_session
 
 from src.service.user import UserService
 from src.repository.user import UserRepository
@@ -13,29 +13,20 @@ from src.service.word import WordService
 from src.repository.word import WordRepository
 
 
-async_database = AsyncDatabase()
-
-
 def user_container() -> UserService:
-    async_session = async_database.initialize_session()
     hash_generator = HashGenerator()
-    user_repository = UserRepository(async_db_session_obj=async_session)
+    user_repository = UserRepository(session_maker=async_session)
     user_service = UserService(user_repo=user_repository, hash_gen=hash_generator)
-    async_database.close_session()
     return user_service
 
 
 def category_container() -> CategoryService:
-    async_session = async_database.initialize_session()
-    category_repository = CategoryRepository(async_db_session_obj=async_session)
+    category_repository = CategoryRepository(session_maker=async_session)
     category_service = CategoryService(category_repo=category_repository)
-    async_database.close_session()
     return category_service
 
 
 def word_container() -> WordService:
-    async_session = async_database.initialize_session()
-    word_repository = WordRepository(async_db_session_obj=async_session)
+    word_repository = WordRepository(session_maker=async_session)
     word_service = WordService(word_repo=word_repository)
-    async_database.close_session()
     return word_service
