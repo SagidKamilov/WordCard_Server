@@ -11,66 +11,62 @@ from src.model.category import Category
 
 class WordRepository(BaseRepository):
     async def create_word(self, category_id: int, word_create: WordCreate) -> Word:
-        stmt = Insert(Word).values(main_language=word_create.main_language, second_language=word_create.second_language,
-                                   transcription=word_create.transcription, category_id=category_id).returning(Word)
+        async with self.db_session() as db_session:
+            word = Word(main_language=word_create.main_language, second_language=word_create.second_language,
+                                       transcription=word_create.transcription, category_id=category_id)
 
-        result = await self.db_session.execute(statement=stmt)
-        word = result.scalar()
+            db_session.add(word)
+            await db_session.commit()
+            await db_session.refresh(word)
 
-        await self.db_session.commit()
+            return word
 
-        return word
+    async def get_word_by_id(self, word_id: int) -> Word:
+        async with self.db_session() as db_session:
+            stmt = Select(Word).where(Word.id == word_id)
 
-    async def get_word_by_id(self, word_id: int) -> Word | None:
-        stmt = Select(Word).where(Word.id == word_id)
+            result = await db_session.execute(statement=stmt)
+            word = result.scalar()
 
-        result = await self.db_session.execute(statement=stmt)
-        word = result.scalar()
+            return word
 
-        if not word:
-            return None
+    async def get_words_by_category_id(self, category_id: int) -> List[Word]:
+        async with self.db_session() as db_session:
+            stmt = Select(Word).where(Word.category_id == category_id)
 
-        return word
+            words_list = await db_session.execute(statement=stmt)
 
-    async def get_words_by_category_id(self, category_id: int) -> List[Word] | None:
-        stmt = Select(Word).where(Word.category_id == category_id)
+            words_list = [
+                element
+                for element
+                in words_list.scalars()
+            ]
 
-        words_list = await self.db_session.execute(statement=stmt)
-        if not words_list:
-            return None
+            return words_list
 
-        words_list = [
-            element
-            for element
-            in words_list.scalars()
-        ]
+    async def update_word(self, word: Word, word_update: WordUpdate) -> Word:
+        async with self.db_session() as db_session:
+            db_session.add(word)
 
-        return words_list
+            if word_update.main_language:
+                word.main_language = word_update.main_language
 
-    async def update_word(self, word_id: int, word_update: WordUpdate) -> Word | None:
-        stmt = Update(Word).where(Word.id == word_id)
+            if word_update.second_language:
+                word.second_language = word_update.second_language
 
-        if word_update.main_language:
-            stmt = stmt.values(main_language=word_update.main_language)
+            if word_update.transcription:
+                word.transcription = word_update.transcription
 
-        if word_update.second_language:
-            stmt = stmt.values(second_language=word_update.second_language)
+            await db_session.commit()
+            await db_session.refresh(word)
 
-        if word_update.transcription:
-            stmt = stmt.values(transcription=word_update.transcription)
-
-        stmt = stmt.returning(Word)
-        result = await self.db_session.execute(stmt)
-        word = result.scalar()
-
-        await self.db_session.commit()
-
-        return word
+            return word
 
     async def delete_word(self, word_id: int) -> int | None:
-        stmt = Delete(Word).where(Word.id == word_id)
+        async with self.db_session() as db_session:
+            stmt = Delete(Word).where(Word.id == word_id)
 
-        await self.db_session.execute(statement=stmt)
-        await self.db_session.commit()
+            await db_session.execute(statement=stmt)
+            await db_session.commit()
 
-        return word_id
+            return word_id
