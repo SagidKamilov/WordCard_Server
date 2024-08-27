@@ -1,8 +1,8 @@
 from typing import List
 
 from src.repository.word import WordRepository
-from src.model.word import Word
 from src.dto.word import WordCreate, WordUpdate, WordResponse
+from src.error.word.word_errors import WordNotExists
 
 
 class WordService:
@@ -23,7 +23,7 @@ class WordService:
         word = await self.word_repo.get_word_by_id(word_id=word_id)
 
         if not word:
-            raise Exception(f"Слово с id = `{word_id}` не найдено!")
+            raise WordNotExists(word_id=word_id)
 
         return WordResponse(
             id=word.id,
@@ -35,26 +35,17 @@ class WordService:
     async def get_words(self, category_id: int) -> List[WordResponse]:
         words = await self.word_repo.get_words_by_category_id(category_id=category_id)
 
-        response_words = [
-            WordResponse(
-                id=element.id,
-                main_language=element.main_language,
-                second_language=element.second_language,
-                transcription=element.transcription
-            )
-            for element
-            in words
-        ]
+        response_words = list(map(lambda word: WordResponse(id=word.id, main_language=word.main_language, second_language=word.second_language, transcription=word.transcription), words))
 
         return response_words
 
     async def update_word(self, word_id: int, word_update: WordUpdate) -> WordResponse:
-        check_exist = await self.check_word_exist(word_id=word_id)
+        word_exists = await self.word_repo.get_word_by_id(word_id=word_id)
 
-        if not check_exist:
-            raise Exception(f"Слово с id = `{word_id}` не было найдено!")
+        if not word_exists:
+            raise WordNotExists(word_id=word_id)
 
-        word = await self.word_repo.update_word(word_id=word_id, word_update=word_update)
+        word = await self.word_repo.update_word(word=word_exists, word_update=word_update)
 
         return WordResponse(
             id=word.id,
@@ -64,19 +55,16 @@ class WordService:
         )
 
     async def delete_word(self, word_id: int) -> int:
-        check_user_exist: bool = await self.check_word_exist(word_id=word_id)
+        check_user_exist: bool = await self.check_word_exists(word_id=word_id)
 
         if not check_user_exist:
-            raise Exception(f"Слово с id = `{word_id}` не было найдено!")
+            raise WordNotExists(word_id=word_id)
 
         result: int = await self.word_repo.delete_word(word_id=word_id)
 
         return result
 
-    async def check_word_exist(self, word_id: int) -> bool:
+    async def check_word_exists(self, word_id: int) -> bool:
         word = await self.word_repo.get_word_by_id(word_id=word_id)
 
-        if word:
-            return True
-        else:
-            return False
+        return True if word else False
