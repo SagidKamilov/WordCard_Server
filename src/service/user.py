@@ -4,6 +4,7 @@ from src.model.user import User
 from src.repository.user import UserRepository
 from src.dto.user import UserAuth, UserCreate, UserCreateHashPassword, UserUpdate, UserUpdateHashedPassword, UserResponse
 from src.security.hash_password import HashGenerator
+from src.error.user.user_errors import UserAlreadyExists, UserIdNotExists, UserUsernameNotExists, UserWrongPassword
 
 
 class UserService:
@@ -12,10 +13,10 @@ class UserService:
         self.hash_generator = hash_gen
 
     async def create_user(self, user_create: UserCreate) -> UserResponse:
-        check_duplicate = await self.check_duplicate(username=user_create.username)
+        duplicate = await self.check_duplicate(username=user_create.username)
 
-        if check_duplicate:
-            raise Exception(f"Пользователь с именем {user_create.username} уже занят")
+        if duplicate:
+            raise UserAlreadyExists(username=user_create.username)
 
         hashed_password: str = await self.hash_password(password=user_create.password)
 
@@ -37,7 +38,7 @@ class UserService:
         user: User = await self.user_repo.get_user_by_id(user_id=user_id)
 
         if not user:
-            raise Exception(f"Пользователь с id = `{user_id}` не был найден!")
+            raise UserIdNotExists(user_id=user_id)
 
         return UserResponse(
             id=user.id,
@@ -48,32 +49,24 @@ class UserService:
     async def get_users_of_category(self, category_id: int) -> List[UserResponse]:
         users = await self.user_repo.get_users_by_category_id(category_id=category_id)
 
-        users_response = [
-            UserResponse(
-                id=element.id,
-                username=element.username,
-                name=element.name
-            )
-            for element
-            in users
-        ]
+        users_response = list(map(lambda user: UserResponse(id=user.id, username=user.username, name=user.name), users))
 
         return users_response
 
     async def update_user(self, user_id: int, user_update: UserUpdate) -> UserResponse:
-        check_user_exist: bool = await self.check_user_exist(user_id=user_id)
+        user_exist: User = await self.user_repo.get_user_by_id(user_id=user_id)
 
-        if not check_user_exist:
-            raise Exception(f"Пользователь с id = `{user_id}` не был найден!")
+        if not user_exist:
+            raise UserIdNotExists(user_id=user_id)
 
-        check_duplicate: bool = await self.check_duplicate(username=user_update.username)
+        duplicate: bool = await self.check_duplicate(username=user_update.username)
 
-        if check_duplicate:
-            raise Exception(f"Логин `{user_update.username}` уже занят!")
+        if duplicate:
+            raise UserAlreadyExists(username=user_update.username)
 
         hashed_password: str = await self.hash_password(password=user_update.password)
 
-        user: User = await self.user_repo.update_user_by_id(user_id=user_id, user_update=UserUpdateHashedPassword(
+        user: User = await self.user_repo.update_user_by_id(old_user=user_exist, user_update=UserUpdateHashedPassword(
             name=user_update.name,
             username=user_update.username,
             hashed_password=hashed_password
@@ -89,7 +82,7 @@ class UserService:
         check_user_exist: bool = await self.check_user_exist(user_id=user_id)
 
         if not check_user_exist:
-            raise Exception(f"Пользователь с id = `{user_id}` не был найден!")
+            raise UserIdNotExists(user_id=user_id)
 
         result: int = await self.user_repo.delete_user_by_id(user_id=user_id)
 
@@ -99,12 +92,12 @@ class UserService:
         user: User = await self.user_repo.get_user_by_username(username=user_auth.username)
 
         if not user:
-            raise Exception(f"Пользователя с username `{user_auth.username}` не существует!")
+            raise UserUsernameNotExists(username=user_auth.username)
 
         result = await self.verify_password(password=user_auth.password, hash_password=user.hashed_password)
 
         if not result:
-            raise Exception("Неверный пароль! Повторите попытку")
+            raise UserWrongPassword()
 
         return UserResponse(
             id=user.id,
@@ -123,15 +116,9 @@ class UserService:
     async def check_duplicate(self, username: str) -> bool:
         user: User = await self.user_repo.get_user_by_username(username=username)
 
-        if user:
-            return True
-        else:
-            return False
+        return True if user else False
 
     async def check_user_exist(self, user_id: int) -> bool:
         user: User = await self.user_repo.get_user_by_id(user_id=user_id)
 
-        if user:
-            return True
-        else:
-            return False
+        return True if user else False
