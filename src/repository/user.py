@@ -51,7 +51,7 @@ class UserRepository(BaseRepository):
                 in users_list.scalars()
             ]
 
-        return users_list
+            return users_list
 
     async def update_user_by_id(self, user: User, user_update: UserUpdateHashedPassword) -> User:
         async with self.db_session() as db_session:
@@ -78,4 +78,4 @@ class UserRepository(BaseRepository):
             await db_session.execute(statement=stmt)
             await db_session.commit()
 
-        return user_id
+            return user_id
