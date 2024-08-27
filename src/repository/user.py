@@ -53,23 +53,23 @@ class UserRepository(BaseRepository):
 
         return users_list
 
-    async def update_user_by_id(self, old_user: User, user_update: UserUpdateHashedPassword) -> User:
+    async def update_user_by_id(self, user: User, user_update: UserUpdateHashedPassword) -> User:
         async with self.db_session() as db_session:
-            new_user: User = old_user
+            db_session.add(user)
 
             if user_update.username:
-                new_user.username = user_update.username
+                user.username = user_update.username
 
             if user_update.hashed_password:
-                new_user.hashed_password = user_update.hashed_password
+                user.hashed_password = user_update.hashed_password
 
             if user_update.name:
-                new_user.name = user_update.name
+                user.name = user_update.name
 
             await db_session.commit()
-            await db_session.refresh(new_user)
+            await db_session.refresh(user)
 
-            return new_user
+            return user
 
     async def delete_user_by_id(self, user_id: int) -> int:
         async with self.db_session() as db_session:
