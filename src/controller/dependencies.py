@@ -15,18 +15,18 @@ from src.repository.word import WordRepository
 
 def user_container() -> UserService:
     hash_generator = HashGenerator()
-    user_repository = UserRepository(session_maker=async_session)
+    user_repository = UserRepository(async_session=async_session)
     user_service = UserService(user_repo=user_repository, hash_gen=hash_generator)
     return user_service
 
 
 def category_container() -> CategoryService:
-    category_repository = CategoryRepository(session_maker=async_session)
+    category_repository = CategoryRepository(async_session=async_session)
     category_service = CategoryService(category_repo=category_repository)
     return category_service
 
 
 def word_container() -> WordService:
-    word_repository = WordRepository(session_maker=async_session)
+    word_repository = WordRepository(async_session=async_session)
     word_service = WordService(word_repo=word_repository)
     return word_service
