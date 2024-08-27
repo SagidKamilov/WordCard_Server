@@ -7,7 +7,7 @@ class UserAlreadyExists(CustomError):
     """
     def __init__(self, username: str):
         self.username = username
-        self.message = f"Пользователь с именем {self.username} уже занят"
+        self.message = f"Пользователь с именем {self.username} уже существует!"
         super().__init__(self.message)
 
 
@@ -17,7 +17,7 @@ class UserIdNotExists(CustomError):
     """
     def __init__(self, user_id: int):
         self.user_id = user_id
-        self.message = f"Пользователь с id = `{self.user_id}` не существует!"
+        self.message = f"Пользователь с id = {self.user_id} не существует!"
         super().__init__(self.message)
 
 
@@ -27,7 +27,7 @@ class UserUsernameNotExists(CustomError):
     """
     def __init__(self, username: str):
         self.username = username
-        self.message = f"Пользователя с username `{self.username}` не существует!"
+        self.message = f"Пользователя с username {self.username} не существует!"
         super().__init__(self.message)
 
 
@@ -36,5 +36,5 @@ class UserWrongPassword(CustomError):
     Введен неправильный пароль
     """
     def __init__(self):
-        self.message = f"Неверный пароль! Повторите попытку"
+        self.message = f"Неверный пароль! Повторите попытку..."
         super().__init__(self.message)
