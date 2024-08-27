@@ -54,9 +54,9 @@ class UserService:
         return users_response
 
     async def update_user(self, user_id: int, user_update: UserUpdate) -> UserResponse:
-        user_exist: User = await self.user_repo.get_user_by_id(user_id=user_id)
+        user_exists: User = await self.user_repo.get_user_by_id(user_id=user_id)
 
-        if not user_exist:
+        if not user_exists:
             raise UserIdNotExists(user_id=user_id)
 
         duplicate: bool = await self.check_duplicate(username=user_update.username)
@@ -66,7 +66,7 @@ class UserService:
 
         hashed_password: str = await self.hash_password(password=user_update.password)
 
-        user: User = await self.user_repo.update_user_by_id(old_user=user_exist, user_update=UserUpdateHashedPassword(
+        user: User = await self.user_repo.update_user_by_id(user=user_exists, user_update=UserUpdateHashedPassword(
             name=user_update.name,
             username=user_update.username,
             hashed_password=hashed_password
@@ -79,9 +79,9 @@ class UserService:
         )
 
     async def delete_user(self, user_id: int) -> int:
-        check_user_exist: bool = await self.check_user_exist(user_id=user_id)
+        user_exists: bool = await self.check_user_exists(user_id=user_id)
 
-        if not check_user_exist:
+        if not user_exists:
             raise UserIdNotExists(user_id=user_id)
 
         result: int = await self.user_repo.delete_user_by_id(user_id=user_id)
@@ -118,7 +118,7 @@ class UserService:
 
         return True if user else False
 
-    async def check_user_exist(self, user_id: int) -> bool:
+    async def check_user_exists(self, user_id: int) -> bool:
         user: User = await self.user_repo.get_user_by_id(user_id=user_id)
 
         return True if user else False
