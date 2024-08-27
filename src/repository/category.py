@@ -11,86 +11,91 @@ from src.model.user_category_list import UserCategoryList
 
 class CategoryRepository(BaseRepository):
     async def create_category(self, user_id: int, category_create: CategoryCreate) -> Category:
-        stmt = Insert(Category).values(owner_id=user_id, category_name=category_create.category_name).returning(Category)
+        async with self.db_session() as db_session:
+            category = Category(owner_id=user_id, category_name=category_create.category_name)
 
-        result = await self.db_session.execute(statement=stmt)
-        category = result.scalar()
+            db_session.add(category)
+            await db_session.commit()
+            await db_session.refresh(category)
 
-        await self.db_session.commit()
-
-        return category
+            return category
 
     async def get_category_by_id(self, category_id: int) -> Category | None:
-        stmt = Select(Category).where(Category.id == category_id)
+        async with self.db_session() as db_session:
+            stmt = Select(Category).where(Category.id == category_id)
 
-        result = await self.db_session.execute(statement=stmt)
-        category = result.scalar()
+            result = await db_session.execute(statement=stmt)
+            category = result.scalar()
 
-        if not category:
-            return None
+            if not category:
+                return None
 
-        return category
+            return category
 
     async def get_categories_by_user_id(self, user_id: int) -> List[Category]:
-        stmt = Select(Category).where(Category.owner_id == user_id)
+        async with self.db_session() as db_session:
+            stmt = Select(Category).where(Category.owner_id == user_id)
 
-        categories = await self.db_session.execute(statement=stmt)
+            categories = await db_session.execute(statement=stmt)
 
-        categories_list = [
-            element
-            for element
-            in categories.scalars()
-        ]
+            categories_list = [
+                element
+                for element
+                in categories.scalars()
+            ]
 
-        return categories_list
+            return categories_list
 
-    async def get_all_general_category_categories(self, user_id: int) -> List[Category]:
-        stmt = Select(Category).join(UserCategoryList).where(UserCategoryList.user_id == user_id)
+    async def get_all_general_categories(self, user_id: int) -> List[Category]:
+        async with self.db_session() as db_session:
+            stmt = Select(Category).join(UserCategoryList).where(UserCategoryList.user_id == user_id)
 
-        categories = await self.db_session.execute(statement=stmt)
+            categories = await db_session.execute(statement=stmt)
 
-        categories_list = [
-            element
-            for element
-            in categories.scalars()
-        ]
+            categories_list = [
+                element
+                for element
+                in categories.scalars()
+            ]
 
-        return categories_list
+            return categories_list
 
     async def add_user_by_user_id(self, category_id: int, user_id: int) -> int:
-        stmt = Insert(UserCategoryList).values(user_id=user_id, category_id=category_id)
+        async with self.db_session() as db_session:
+            user_category_list = UserCategoryList(user_id=user_id, category_id=category_id)
 
-        await self.db_session.execute(statement=stmt)
-        await self.db_session.commit()
+            db_session.add(user_category_list)
+            await db_session.commit()
+            await db_session.refresh(user_category_list)
 
-        return category_id
+            return category_id # Здесь еще можно подумать, что возвращать
 
     async def remove_user_by_user_id(self, category_id: int, user_id: int) -> int:
-        stmt = Delete(UserCategoryList).where(UserCategoryList.category_id == category_id).where(UserCategoryList.user_id==user_id)
+        async with self.db_session() as db_session:
+            stmt = Delete(UserCategoryList).where(UserCategoryList.category_id == category_id).where(UserCategoryList.user_id == user_id)
 
-        await self.db_session.execute(statement=stmt)
-        await self.db_session.commit()
+            await db_session.execute(statement=stmt)
+            await db_session.commit()
 
-        return category_id
+            return category_id
 
-    async def update_category_by_id(self, category_id: int, category_update: CategoryUpdate) -> Category | None:
-        stmt = Update(Category).where(Category.id == category_id)
+    async def update_category_by_id(self, category: Category, category_update: CategoryUpdate) -> Category | None:
+        async with self.db_session() as db_session:
+            db_session.add(category)
 
-        if category_update.category_name:
-            stmt = stmt.values(category_name=category_update.category_name)
+            if category_update.category_name:
+                category.category_name = category_update.category_name
 
-        stmt = stmt.returning(Category)
-        result = await self.db_session.execute(statement=stmt)
-        category = result.scalar()
+            await db_session.commit()
+            await db_session.refresh(category)
 
-        await self.db_session.commit()
-
-        return category
+            return category
 
     async def delete_category_by_id(self, category_id: int) -> int:
-        stmt = Delete(Category).where(Category.id == category_id)
+        async with self.db_session() as db_session:
+            stmt = Delete(Category).where(Category.id == category_id)
 
-        await self.db_session.execute(statement=stmt)
-        await self.db_session.commit()
+            await db_session.execute(statement=stmt)
+            await db_session.commit()
 
-        return category_id
+            return category_id
