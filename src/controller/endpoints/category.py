@@ -2,8 +2,10 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException, status, Depends
 
-from src.api.dependencies import category_container
+from src.controller.dependencies import category_container
 from src.dto.category import CategoryCreate, CategoryUpdate, CategoryResponse
+from src.error.category.category_errors import CategoryNotExists, CategoryNotExistsAdditionalInfo
+from src.error.base_error import internal_server_message
 
 
 router = APIRouter(prefix="", tags=["Действия над категориями"])
@@ -15,8 +17,8 @@ async def create_category(user_id: int, category_create: CategoryCreate):
         category = await category_container().create_category(user_id=user_id, category_create=category_create)
 
         return category
-    except Exception as error_detail:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=internal_server_message)
 
 
 @router.get(path="/category/{category_id}", status_code=status.HTTP_200_OK, response_model=CategoryResponse)
@@ -25,8 +27,10 @@ async def get_category(category_id: int):
         category = await category_container().get_category(category_id=category_id)
 
         return category
-    except Exception as error_detail:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
+    except CategoryNotExists as wrong:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=wrong.message)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=internal_server_message)
 
 
 @router.get(path="/{user_id}/categories", status_code=status.HTTP_200_OK, response_model=List[CategoryResponse])
@@ -35,8 +39,8 @@ async def get_categories(user_id: int):
         categories = await category_container().get_categories(user_id=user_id)
 
         return categories
-    except Exception as error_detail:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=internal_server_message)
 
 
 @router.get(path="/{user_id}/general/categories", status_code=status.HTTP_200_OK, response_model=List[CategoryResponse])
@@ -45,8 +49,8 @@ async def get_general_categories(user_id: int):
         categories = await category_container().get_general_categories(user_id=user_id)
 
         return categories
-    except Exception as error_detail:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=internal_server_message)
 
 
 @router.post(path="/category/{category_id}/user/{user_id}", status_code=status.HTTP_200_OK, response_model=int)
@@ -55,8 +59,10 @@ async def category_remove_user(category_id: int, user_id: int):
         result = await category_container().add_user_in_category(user_id=user_id, category_id=category_id)
 
         return result
-    except Exception as error_detail:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
+    except CategoryNotExistsAdditionalInfo as wrong:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=wrong.message)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=internal_server_message)
 
 
 @router.delete(path="/category/{category_id}/user/{user_id}", status_code=status.HTTP_200_OK, response_model=int)
@@ -65,8 +71,10 @@ async def category_delete_user(category_id: int, user_id: int):
         result = await category_container().remove_user_from_category(user_id=user_id, category_id=category_id)
 
         return result
-    except Exception as error_detail:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
+    except CategoryNotExistsAdditionalInfo as wrong:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=wrong.message)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=internal_server_message)
 
 
 @router.put(path="/category/{category_id}", status_code=status.HTTP_200_OK, response_model=CategoryResponse)
@@ -75,8 +83,10 @@ async def update_category(category_id: int, category_update: CategoryUpdate):
         category = await category_container().update_category(category_id=category_id, category_update=category_update)
 
         return category
-    except Exception as error_detail:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
+    except CategoryNotExists as wrong:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=wrong.message)
+    except Exception as error:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error))
 
 
 @router.delete(path="/category/{category_id}", status_code=status.HTTP_200_OK, response_model=int)
@@ -85,5 +95,7 @@ async def delete_category(category_id: int):
         result: int = await category_container().delete_category(category_id=category_id)
 
         return result
-    except Exception as error_detail:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error_detail))
+    except CategoryNotExists as wrong:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=wrong.message)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=internal_server_message)
