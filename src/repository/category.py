@@ -60,6 +60,14 @@ class CategoryRepository(BaseRepository):
 
             return categories_list
 
+    async def check_user_in_category_members(self, user_id: int, category_id: int) -> UserCategoryList:
+        async with self.db_session() as db_session:
+            stmt = Select(UserCategoryList).where(UserCategoryList.category_id == category_id).where(UserCategoryList.user_id == user_id)
+
+            user_exists = await db_session.execute(stmt)
+
+            return user_exists.scalar()
+
     async def add_user_by_user_id(self, category_id: int, user_id: int) -> int:
         async with self.db_session() as db_session:
             user_category_list = UserCategoryList(user_id=user_id, category_id=category_id)

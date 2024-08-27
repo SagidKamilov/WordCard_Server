@@ -3,7 +3,7 @@ from typing import List
 from src.model.category import Category
 from src.repository.category import CategoryRepository
 from src.dto.category import CategoryCreate, CategoryUpdate, CategoryResponse
-from src.error.category.category_errors import CategoryNotExists, CategoryNotExistsAdditionalInfo
+from src.error.category.category_errors import CategoryNotExists, CategoryNotExistsAdditionalInfo, UserAlreadyBelongsCategory, UserDoesNotBelongCategory
 
 
 class CategoryService:
@@ -55,6 +55,11 @@ class CategoryService:
         if not category_exists:
             raise CategoryNotExistsAdditionalInfo(category_id=category_id, user_id=user_id)
 
+        user_belongs_category = await self.category_repo.check_user_in_category_members(category_id=category_id, user_id=user_id)
+
+        if user_belongs_category:
+            raise UserAlreadyBelongsCategory(user_id=user_id, category_id=category_id)
+
         result_category_id = await self.category_repo.add_user_by_user_id(user_id=user_id, category_id=category_id)
 
         return result_category_id # Такой же момент, чтобы подумать
@@ -64,6 +69,12 @@ class CategoryService:
 
         if not category_exists:
             raise CategoryNotExistsAdditionalInfo(category_id=category_id, user_id=user_id)
+
+        user_belongs_category = await self.category_repo.check_user_in_category_members(category_id=category_id,
+                                                                                        user_id=user_id)
+
+        if not user_belongs_category:
+            raise UserDoesNotBelongCategory(user_id=user_id, category_id=category_id)
 
         result_category_id = await self.category_repo.remove_user_by_user_id(user_id=user_id, category_id=category_id)
 
