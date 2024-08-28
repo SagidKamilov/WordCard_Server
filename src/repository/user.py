@@ -3,6 +3,7 @@ from typing import List, Type
 from sqlalchemy import Insert, Select, Update, Delete
 
 from src.model.user import User
+from src.model.user_category_list import UserCategoryList
 from src.dto.user import UserCreateHashPassword, UserUpdateHashedPassword
 from src.repository.base_repo import BaseRepository
 
@@ -41,7 +42,7 @@ class UserRepository(BaseRepository):
 
     async def get_users_by_category_id(self, category_id: int) -> List[User]:
         async with self.db_session() as db_session:
-            stmt = Select(User).join(Category).where(Category.id == category_id)
+            stmt = Select(User).join(UserCategoryList).where(Category.id == category_id)
 
             users_list = await db_session.execute(stmt)
 
